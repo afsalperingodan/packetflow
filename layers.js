@@ -327,9 +327,9 @@
     { q: 'A Wi‑Fi access point mostly works at which layers?', o: ['Layers 1 and 2', 'Layers 3 and 4', 'Only layer 7', 'Layers 5 and 6'], a: 0, e: 'An AP handles radio (layer 1) and 802.11 frames (layer 2) — a controller can add CAPWAP tunnelling on top.' },
   ];
   function initQuiz() {
-    const box = $('#quizBox'); let i = 0, score = 0;
+    const box = $('#quizBox'); let i = 0, score = 0, T0 = performance.now();
     const render = () => {
-      if (i >= QUIZ.length) { box.innerHTML = `<div class="qdone"><div class="big">${score}/${QUIZ.length}</div><p>${score >= 7 ? 'Network ninja! You know your layers.' : score >= 5 ? 'Solid. Replay the encapsulation animation and try again.' : 'Good start — revisit the layers and headers above, then retry.'}</p><button class="btn solid" id="qAgain">Try again</button></div>`; $('#qAgain').onclick = () => { i = 0; score = 0; render(); }; return; }
+      if (i >= QUIZ.length) { box.innerHTML = `<div class="qdone"><div class="big">${score}/${QUIZ.length}</div><p>${score >= 7 ? 'Network ninja! You know your layers.' : score >= 5 ? 'Solid. Replay the encapsulation animation and try again.' : 'Good start — revisit the layers and headers above, then retry.'}</p><div id="qForm"></div><button class="btn solid" id="qAgain">Try again</button></div>`; PFBoard.form($('#qForm'), 'layers', score, QUIZ.length, Math.round(performance.now() - T0)); $('#qAgain').onclick = () => { i = 0; score = 0; T0 = performance.now(); render(); }; return; }
       const Q = QUIZ[i];
       box.innerHTML = `<div class="qtop"><span>Question ${i + 1} / ${QUIZ.length}</span><span>Score ${score}</span></div><div class="qbar"><b style="width:${i / QUIZ.length * 100}%"></b></div>
         <h3 class="qq">${Q.q}</h3><div class="qopts">${Q.o.map((t, k) => `<button data-k="${k}">${t}</button>`).join('')}</div><div class="qfb" id="qfb"></div>`;
@@ -344,5 +344,5 @@
     render();
   }
 
-  buildStack(); initEncap(); buildHeaders(); initQuiz();
+  buildStack(); initEncap(); buildHeaders(); initQuiz(); PFBoard.mount('#board', 'layers', 'Leaderboard · OSI & headers quiz');
 })();
