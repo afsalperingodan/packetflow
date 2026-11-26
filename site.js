@@ -1,5 +1,5 @@
 /* PacketFlow — shared site settings (edit here) */
-window.PF_BOARD_URL = ''; // ← Firebase Realtime Database URL for the worldwide quiz leaderboard (see README), e.g. 'https://your-project-default-rtdb.firebaseio.com'
+window.PF_BOARD_URL = 'https://packetflow-board-default-rtdb.firebaseio.com'; // ← Firebase Realtime Database URL for the worldwide quiz leaderboard (see README), e.g. 'https://your-project-default-rtdb.firebaseio.com'
 window.PF_LINKEDIN = 'https://www.linkedin.com/in/afsalperingodan/'; // ← paste your LinkedIn profile URL, e.g. 'https://www.linkedin.com/in/yourname'
 
 (function () {
