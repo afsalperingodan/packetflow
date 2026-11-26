@@ -34,6 +34,7 @@
     client: g => { el('rect', { x: -17, y: -16, width: 34, height: 22, rx: 3, class: 'f' }, g); el('path', { d: 'M-23 12h46l-4 5h-38z' }, g); el('path', { d: 'M-6 -5l5 4 7-7', style: 'opacity:.7' }, g); },
     server: g => { [-17, -3, 11].forEach((y, i) => { el('rect', { x: -17, y, width: 34, height: 11, rx: 3, class: 'f' }, g); el('circle', { cx: -10, cy: y + 5.5, r: 1.8, class: 'dot' }, g); el('path', { d: `M2 ${y + 5.5}h10` }, g); }); },
     router: g => { el('rect', { x: -21, y: -2, width: 42, height: 17, rx: 4, class: 'f' }, g); el('path', { d: 'M-12 -2l-6 -13M12 -2l6 -13M0 -2v-13' }, g); [-11, -3, 5, 13].forEach(x => el('circle', { cx: x - 1, cy: 6.5, r: 1.7, class: 'dot' }, g)); },
+    ap: g => { el('rect', { x: -19, y: 2, width: 38, height: 14, rx: 4, class: 'f' }, g); el('circle', { cx: -9, cy: 9, r: 1.6, class: 'dot' }, g); el('circle', { cx: -3, cy: 9, r: 1.6, class: 'dot' }, g); el('path', { d: 'M-9 -4a13 13 0 0 1 18 0M-14 -10a21 21 0 0 1 28 0M-4 0a5 5 0 0 1 8 0' }, g); },
     switch: g => { el('rect', { x: -22, y: -10, width: 44, height: 20, rx: 4, class: 'f' }, g); [-14, -6, 2, 10].forEach(x => el('rect', { x, y: 0, width: 5, height: 6, class: 'dot' }, g)); el('path', { d: 'M-12 -4h24m-4 -3l4 3l-4 3' }, g); },
     cloud: g => { el('path', { d: 'M-16 12a9 9 0 0 1 0-18a12 12 0 0 1 23-3a10 10 0 0 1 9 21z', class: 'f' }, g); el('circle', { cx: 0, cy: 3, r: 7 }, g); el('path', { d: 'M-7 3h14M0 -4c-4 4-4 10 0 14M0 -4c4 4 4 10 0 14' }, g); },
     dns: g => { el('circle', { cx: 0, cy: 0, r: 17, class: 'f' }, g); el('ellipse', { cx: 0, cy: 0, rx: 7, ry: 17 }, g); el('path', { d: 'M-17 0h34M-14 -9h28M-14 9h28' }, g); },
@@ -79,14 +80,14 @@
     CATS.forEach(cat => {
       const items = PROTOCOLS.filter(p => p.cat === cat.id && (!f || (p.name + p.full + p.desc + p.abbr + p.steps.map(s => s.info + s.title + s.tag).join(' ')).toLowerCase().includes(f)));
       if (!items.length) return;
-      const h = document.createElement('div'); h.className = 'cat'; h.innerHTML = `${cat.name}<small>${cat.blurb}</small>`; box.appendChild(h);
+      const h = document.createElement('div'); h.className = 'cat'; h.innerHTML = `<span>${cat.name}</span><small>${items.length}</small>`; box.appendChild(h);
       items.forEach(p => {
         count++;
         const b = document.createElement('button');
         b.className = 'pitem' + (state.P && state.P.id === p.id ? ' on' : '');
         b.style.animationDelay = (idx++ * 30) + 'ms';
         b.dataset.id = p.id;
-        b.innerHTML = `<span class="pbadge" style="--c:${protoColor(p.abbr)}">${p.abbr}</span><span class="t"><b>${p.name}</b><small>${p.full}</small></span>`;
+        b.innerHTML = `<span class="pdot" style="--c:${protoColor(p.abbr)}"></span><span class="t"><b>${p.name}</b><small>${p.full}</small></span>`;
         b.onclick = () => { location.hash = p.id; $('#side').classList.remove('open'); };
         box.appendChild(b);
       });
@@ -103,19 +104,21 @@
     $$('.pitem').forEach(b => b.classList.toggle('on', b.dataset.id === P.id));
     renderHero(P); renderStage(P); renderSequence(P); renderTable(P);
     applyStep(-1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (state.loaded) $('#hero').scrollIntoView({ behavior: 'smooth', block: 'start' }); state.loaded = true;
   }
 
   function renderHero(P) {
+    $('#hero').dataset.abbr = P.abbr; $('#hero').style.animation = 'none'; void $('#hero').offsetWidth; $('#hero').style.animation = '';
     $('#hero').innerHTML = `
-      <h1><span class="pbadge" style="--c:${protoColor(P.abbr)};font-size:14px">${P.abbr}</span>${P.name}<small>${P.full}</small></h1>
+      <div class="sub" style="--c:${protoColor(P.abbr)}"><i></i>${P.full}</div>
+      <h1>${P.name}</h1>
       <p class="desc">${P.desc}</p>
       <div class="chips">
         <span class="chip"><b>Layer</b>${P.layer}</span><span class="chip"><b>Port</b>${P.port}</span>
         <span class="chip"><b>Runs over</b>${P.transport}</span><span class="chip"><b>Spec</b>${P.rfc}</span>
         <span class="chip"><b>Steps</b>${P.steps.length}</span>
       </div>
-      <div class="analogy"><span class="ic">💡</span><div><em>In plain words</em>${P.analogy}</div></div>`;
+      <div class="analogy"><div><em>In plain words</em>${P.analogy}</div></div>`;
   }
 
   /* ---------- network stage ---------- */
@@ -124,9 +127,9 @@
     const svg = $('#stage'); svg.innerHTML = '';
     const defs = el('defs', {}, svg);
     gLinks = el('g', {}, svg); gNodes = el('g', {}, svg); gTrail = el('g', {}, svg); gPk = el('g', {}, svg);
-    P.links.forEach(([a, b]) => {
+    P.links.forEach(([a, b, kind]) => {
       const [x1, y1] = state.pos[a], [x2, y2] = state.pos[b];
-      const l = el('line', { x1, y1, x2, y2, class: 'link flow', 'data-a': a, 'data-b': b }, gLinks);
+      const l = el('line', { x1, y1, x2, y2, class: 'link ' + (kind === 'wifi' ? 'wifi' : 'flow'), 'data-a': a, 'data-b': b }, gLinks);
     });
     P.nodes.forEach((n, i) => {
       const g = el('g', { class: 'node', 'data-id': n.id, transform: `translate(${n.x},${n.y})` }, gNodes);
@@ -212,14 +215,14 @@
     setIps(i);
     const cap = $('#caption');
     if (i < 0) {
-      cap.innerHTML = `<div class="num" style="--cc:var(--accent)">▶</div><div class="body"><h4>Ready when you are</h4><p>Press <b>Play</b> to watch ${P.name} happen packet by packet, or use <b>Step</b> to go one move at a time. Click any row in the table to jump to it.</p></div>`;
+      cap.innerHTML = `<div class="num" style="--cc:var(--accent)">00</div><div class="body"><h4>Ready when you are</h4><p>Press <b>Play</b> to watch ${P.name} happen packet by packet, or use <b>Step</b> to go one move at a time. Click any row in the table to jump to it.</p></div>`;
     } else {
       const s = P.steps[i];
-      cap.innerHTML = `<div class="num" style="--cc:${stepColor(s)}">${i + 1}/${n}</div><div class="body"><h4>${s.title}</h4><p>${s.why}</p></div>`;
+      cap.innerHTML = `<div class="num" style="--cc:${stepColor(s)}">${String(i + 1).padStart(2, '0')}/${String(n).padStart(2, '0')}</div><div class="body"><h4>${s.title}</h4><p>${s.why}</p></div>`;
     }
     renderInspect(i);
     $('#playBtn').classList.toggle('playing', state.playing);
-    $('#playBtn').textContent = state.playing ? '⏸ Pause' : (i >= n - 1 ? '↻ Replay' : (i < 0 ? '▶ Play' : '▶ Resume'));
+    $('#playBtn').textContent = state.playing ? 'Pause' : (i >= n - 1 ? 'Replay' : (i < 0 ? 'Play' : 'Resume'));
     const row = $(`#tbl tbody tr[data-i="${i}"]`); if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     const sr = $(`.seq-row[data-i="${i}"]`); if (sr) { const sc = $('.seq-scroll'), top = sr.getBBox().y * (sc.scrollWidth / 1000); sc.scrollTo({ top: Math.max(0, top - 140), behavior: 'smooth' }); }
   }
@@ -227,17 +230,17 @@
   function renderInspect(i) {
     const P = state.P, box = $('#inspect');
     if (i < 0) {
-      box.innerHTML = `<h3>Packet inspector</h3><p style="color:var(--muted)">Start the animation and every packet’s header fields appear here — the same information a tool like Wireshark shows.</p><div class="tipbox"><b>💡 Did you know?</b><br>${P.tip}</div>`;
+      box.innerHTML = `<h3>Packet inspector</h3><p style="color:var(--muted)">Start the animation and every packet’s header fields appear here — the same information a tool like Wireshark shows.</p><div class="tipbox"><b>Did you know?</b>${P.tip}</div>`;
       return;
     }
     const s = P.steps[i], c = stepColor(s), hdr = s.hdr ?? Math.min(s.size, 54), pay = Math.max(0, s.size - hdr);
     box.innerHTML = `<h3>Packet inspector</h3>
       <div class="head"><span class="pb" style="--c:${protoColor(s.proto)}">${s.proto}</span><span class="t">${s.tag}</span></div>
-      <div style="font-size:13px;color:var(--muted)">${s.src || ipOf(s.from)} → ${s.dst || (s.to === s.from ? 'itself' : toList(s).length > 1 ? 'Broadcast' : ipOf(toList(s)[0]))}</div>
+      <div class="route">${s.src || ipOf(s.from)} → ${s.dst || (s.to === s.from ? 'itself' : toList(s).length > 1 ? 'Broadcast' : ipOf(toList(s)[0]))}</div>
       <div class="fields" style="--c:${c}">${s.fields.map(([k, v], j) => `<div class="field" style="animation-delay:${j * 45}ms"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
       ${s.size ? `<div class="sizebar">Frame size: <b>${fmtSize(s.size)}</b> — headers ${hdr} B${pay ? ` + payload ${fmtSize(pay)}` : ''}
         <div class="bar"><i style="width:${Math.max(6, hdr / s.size * 100)}%;background:${c}"></i><i style="width:${pay / s.size * 100}%;background:color-mix(in srgb,${c} 40%,transparent)"></i></div></div>` : ''}
-      <div class="tipbox"><b>💡 Did you know?</b><br>${P.tip}</div>`;
+      <div class="tipbox"><b>Did you know?</b>${P.tip}</div>`;
   }
 
   /* ---------- packet animation ---------- */
@@ -255,20 +258,20 @@
       const segs = pts.slice(1).map((p, k) => Math.hypot(p[0] - pts[k][0], p[1] - pts[k][1]));
       const total = segs.reduce((a, b) => a + b, 0);
       const lim = s.lost ? total * 0.56 : total;
-      const dur = Math.max(650, total / 480 * 1000) / state.speed;
+      const dur = Math.max(1300, total / 260 * 1000) / state.speed;
       const color = stepColor(s);
       const g = el('g', { class: 'pkt', style: `--pc:${color}` }, gPk);
       const w = s.tag.length * 7 + 16;
       const pill = el('g', {}, g); el('rect', { x: -w / 2, y: -34, width: w, height: 18, rx: 9, class: 'pill' }, pill); el('text', { y: -21 }, pill).textContent = s.tag;
       el('circle', { r: 8, class: 'core', fill: color }, g);
-      if (s.kind === 'sec') el('text', { y: 4, style: 'font-size:10px' }, g).textContent = '🔒';
+      if (s.kind === 'sec') el('text', { y: 4, style: 'font-size:10px' }, g).textContent = '';
       const t0 = performance.now(); let lastTrail = 0;
       const frame = now => {
         if (tok !== state.token) { g.remove(); return res(false); }
         const t = Math.min(1, (now - t0) / dur), e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
         const [x, y] = pointAt(pts, segs, total, e * lim);
         g.setAttribute('transform', `translate(${x},${y})`);
-        if (now - lastTrail > 38) { lastTrail = now; const c = el('circle', { cx: x, cy: y, r: 6, class: 'trail', style: `--tc:${color}` }, gTrail); setTimeout(() => c.remove(), 720); }
+        if (now - lastTrail > 55) { lastTrail = now; const c = el('circle', { cx: x, cy: y, r: 6, class: 'trail', style: `--tc:${color}` }, gTrail); setTimeout(() => c.remove(), 950); }
         if (t < 1) return requestAnimationFrame(frame);
         if (s.lost) { el('circle', { cx: x, cy: y, r: 22, class: 'burst' }, gTrail); const x2 = el('text', { x, y: y + 7, style: 'font:700 22px sans-serif;fill:var(--lost);text-anchor:middle' }, gTrail); x2.textContent = '✕'; setTimeout(() => x2.remove(), 1500); g.remove(); return res(true); }
         g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'forwards' }); setTimeout(() => g.remove(), 230);
@@ -291,8 +294,8 @@
     if (toList(s).length === 1 && s.to === s.from) { // local action
       lightLinks([], color); setActive([]); n.classList.add('local'); hit(s.from);
       const b = el('g', { class: 'badge-pill', transform: `translate(${state.pos[s.from][0]},${state.pos[s.from][1] - 56})` }, gPk);
-      const w = s.tag.length * 7.4 + 22; el('rect', { x: -w / 2, y: -11, width: w, height: 22, rx: 11 }, b); el('text', { y: 4 }, b).textContent = '⚙ ' + s.tag;
-      await sleep(1300 / state.speed); n.classList.remove('local'); setTimeout(() => b.remove(), 400);
+      const w = s.tag.length * 7.4 + 22; el('rect', { x: -w / 2, y: -11, width: w, height: 22, rx: 11 }, b); el('text', { y: 4 }, b).textContent = '● ' + s.tag;
+      await sleep(1900 / state.speed); n.classList.remove('local'); setTimeout(() => b.remove(), 400);
       return tok === state.token;
     }
     const paths = stepPaths(s);
@@ -318,7 +321,7 @@
     while (state.playing && tok === state.token && state.step < state.P.steps.length - 1) {
       await runStep(state.step + 1, tok);
       if (tok !== state.token) return;
-      await sleep(550 / state.speed);
+      await sleep(1000 / state.speed);
     }
     if (tok === state.token) { state.playing = false; applyStep(state.step); }
   }
@@ -335,12 +338,15 @@
   }
   function setTheme(t) { document.documentElement.dataset.theme = t; store.set('nf-theme', t); }
 
+  function countUp(elm, to) {
+    const t0 = performance.now(), d = 1400;
+    const f = now => { const t = Math.min(1, (now - t0) / d); elm.textContent = Math.round(to * (1 - Math.pow(1 - t, 3))); if (t < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  }
+
   function init() {
     setTheme(store.get('nf-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
     $('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
-    // Optional: point the GitHub icon at your repository by adding ?repo= or editing the href below
-    $('#ghLink').href = 'https://github.com/' + (document.querySelector('meta[name="github-repo"]')?.content || '');
-    if (!document.querySelector('meta[name="github-repo"]')) $('#ghLink').style.display = 'none';
     $('#menuBtn').onclick = () => $('#side').classList.toggle('open');
     $('#playBtn').onclick = togglePlay;
     $('#stepBtn').onclick = () => goTo(state.step + 1);
@@ -349,7 +355,7 @@
     $$('.tab').forEach(t => t.onclick = () => setView(t.dataset.view));
     $$('#speed button').forEach(b => b.onclick = () => { state.speed = +b.dataset.s; $$('#speed button').forEach(x => x.classList.toggle('on', x === b)); });
     $('#q').addEventListener('input', e => renderList(e.target.value));
-    $('#brand').onclick = e => { e.preventDefault(); location.hash = 'http'; };
+    $('#brand').onclick = e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
     addEventListener('hashchange', () => load(location.hash.slice(1)));
     addEventListener('keydown', e => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -360,6 +366,14 @@
       else if (e.key === 'ArrowLeft') goTo(state.step - 1);
       else if (e.key.toLowerCase() === 'r') reset();
     });
+    countUp($('#statProto'), PROTOCOLS.length); countUp($('#statSteps'), PROTOCOLS.reduce((a, p) => a + p.steps.length, 0));
+    $('#q').placeholder = `Search ${PROTOCOLS.length} protocols…`;
+    const names = PROTOCOLS.map(p => `<span>${p.name}</span>`).join('');
+    $('#marquee').innerHTML = names + names;
+    const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), { threshold: .15 });
+    $$('.reveal').forEach(r => io.observe(r));
+    addEventListener('pointermove', e => { const bg = $('.bg'); bg.style.setProperty('--mx', e.clientX + 'px'); bg.style.setProperty('--my', e.clientY + 'px'); }, { passive: true });
+    $('#randomBtn').onclick = () => { const p = PROTOCOLS[Math.floor(Math.random() * PROTOCOLS.length)]; location.hash = p.id; $('#explore').scrollIntoView({ behavior: 'smooth' }); setTimeout(play, 900); };
     renderList();
     load(location.hash.slice(1) || 'http');
   }

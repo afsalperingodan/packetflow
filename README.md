@@ -1,6 +1,6 @@
 # PacketFlow
 
-Free, animated, step-by-step visualizer for 19 network protocols (ARP, DHCP, TCP, UDP, QUIC, DNS, HTTP, HTTPS/TLS, WebSocket, FTP, SSH, SMTP, MQTT, SNMP, ICMP, Traceroute, NTP, BGP). No build step, no dependencies, nothing locked.
+Free, animated, step-by-step visualizer for 44 network protocols — ARP, DHCP, TCP, UDP, QUIC, DNS, HTTP, TLS, WebSocket, CAPWAP, 802.11, WPA2, 802.1X, RADIUS, VLAN, STP, OSPF, BGP, VRRP, NAT, IPsec, WireGuard, Kerberos, OAuth, SIP, SMB and more. No build step, no dependencies, nothing locked.
 
 Open `index.html` or run `python3 -m http.server` and visit http://localhost:8000.
 

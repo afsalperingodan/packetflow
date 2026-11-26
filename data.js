@@ -17,11 +17,13 @@ const web = (sLabel, sIp, sType = 'server') => ({
 });
 
 const CATS = [
-  { id: 'link', name: 'Local network', blurb: 'How devices on the same network find each other' },
-  { id: 'transport', name: 'Transport', blurb: 'Getting data reliably (or quickly) from A to B' },
-  { id: 'web', name: 'Web', blurb: 'What happens when you open a website' },
-  { id: 'apps', name: 'Apps & services', blurb: 'Email, files, remote login and IoT' },
-  { id: 'routing', name: 'Routing & tools', blurb: 'How the internet finds paths and how we debug it' },
+  { id: 'link', name: 'Local network', blurb: 'Switching, addressing & neighbours' },
+  { id: 'wireless', name: 'Wireless', blurb: 'Wi‑Fi, CAPWAP, 802.1X' },
+  { id: 'transport', name: 'Transport', blurb: 'Reliable or fast delivery' },
+  { id: 'web', name: 'Web', blurb: 'What happens when you open a site' },
+  { id: 'security', name: 'Security & access', blurb: 'VPNs, tickets, AAA' },
+  { id: 'apps', name: 'Apps & voice', blurb: 'Email, files, calls, IoT' },
+  { id: 'routing', name: 'Routing & tools', blurb: 'Paths, redundancy & diagnostics' },
 ];
 
 const PROTOCOLS = [
