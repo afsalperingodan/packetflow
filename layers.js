@@ -316,6 +316,24 @@
   }
 
   /* ═════════ 4 · quiz ═════════ */
+
+  function pickQuizQuestions(bank, quizId, count = 15) {
+    const key = 'pf-quiz-seen-' + quizId;
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
+    const fresh = bank.map((q, id) => ({ q, id })).filter(x => !seen.includes(x.id));
+    // Start a new cycle only when fewer than a full quiz remain.
+    const pool = fresh.length >= count ? fresh : bank.map((q, id) => ({ q, id }));
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const selected = pool.slice(0, Math.min(count, pool.length));
+    const nextSeen = [...new Set([...seen, ...selected.map(x => x.id)])];
+    try { localStorage.setItem(key, JSON.stringify(nextSeen.length >= bank.length ? [] : nextSeen)); } catch {}
+    return selected.map(x => x.q);
+  }
+
   const QUIZ = [
     { q: 'Which layer is responsible for routing packets between different networks?', o: ['Data link (2)', 'Network (3)', 'Transport (4)', 'Session (5)'], a: 1, e: 'The Network layer uses IP addresses and routers to choose a path across networks.' },
     { q: 'A switch forwards frames using which address?', o: ['IP address', 'Port number', 'MAC address', 'Domain name'], a: 2, e: 'Switches work at layer 2 and learn which MAC address lives on which port.' },
@@ -327,17 +345,19 @@
     { q: 'A Wi‑Fi access point mostly works at which layers?', o: ['Layers 1 and 2', 'Layers 3 and 4', 'Only layer 7', 'Layers 5 and 6'], a: 0, e: 'An AP handles radio (layer 1) and 802.11 frames (layer 2) — a controller can add CAPWAP tunnelling on top.' },
   ];
   function initQuiz() {
+    const QUESTIONS_PER_ATTEMPT = 15;
+    let activeQuestions = pickQuizQuestions(QUIZ, 'layers', QUESTIONS_PER_ATTEMPT);
     const box = $('#quizBox'); let i = 0, score = 0, T0 = performance.now();
     const render = () => {
-      if (i >= QUIZ.length) { box.innerHTML = `<div class="qdone"><div class="big">${score}/${QUIZ.length}</div><p>${score >= 7 ? 'Network ninja! You know your layers.' : score >= 5 ? 'Solid. Replay the encapsulation animation and try again.' : 'Good start — revisit the layers and headers above, then retry.'}</p><div id="qForm"></div><button class="btn solid" id="qAgain">Try again</button></div>`; PFBoard.form($('#qForm'), 'layers', score, QUIZ.length, Math.round(performance.now() - T0)); $('#qAgain').onclick = () => { i = 0; score = 0; T0 = performance.now(); render(); }; return; }
-      const Q = QUIZ[i];
-      box.innerHTML = `<div class="qtop"><span>Question ${i + 1} / ${QUIZ.length}</span><span>Score ${score}</span></div><div class="qbar"><b style="width:${i / QUIZ.length * 100}%"></b></div>
+      if (i >= activeQuestions.length) { box.innerHTML = `<div class="qdone"><div class="big">${score}/${activeQuestions.length}</div><p>${score >= 7 ? 'Network ninja! You know your layers.' : score >= 5 ? 'Solid. Replay the encapsulation animation and try again.' : 'Good start — revisit the layers and headers above, then retry.'}</p><div id="qForm"></div><button class="btn solid" id="qAgain">Try again</button></div>`; PFBoard.form($('#qForm'), 'layers', score, activeQuestions.length, Math.round(performance.now() - T0)); $('#qAgain').onclick = () => { activeQuestions = pickQuizQuestions(QUIZ, 'layers', QUESTIONS_PER_ATTEMPT); i = 0; score = 0; T0 = performance.now(); render(); }; return; }
+      const Q = activeQuestions[i];
+      box.innerHTML = `<div class="qtop"><span>Question ${i + 1} / ${activeQuestions.length}</span><span>Score ${score}</span></div><div class="qbar"><b style="width:${i / activeQuestions.length * 100}%"></b></div>
         <h3 class="qq">${Q.q}</h3><div class="qopts">${Q.o.map((t, k) => `<button data-k="${k}">${t}</button>`).join('')}</div><div class="qfb" id="qfb"></div>`;
       $$('.qopts button', box).forEach(b => b.onclick = () => {
         const k = +b.dataset.k, ok = k === Q.a; if (ok) score++;
         $$('.qopts button', box).forEach(x => { x.disabled = true; if (+x.dataset.k === Q.a) x.classList.add('right'); });
         if (!ok) b.classList.add('wrong');
-        $('#qfb').innerHTML = `<p><b>${ok ? 'Correct.' : 'Not quite.'}</b> ${Q.e}</p><button class="btn solid" id="qNext">${i === QUIZ.length - 1 ? 'See score' : 'Next question'}</button>`;
+        $('#qfb').innerHTML = `<p><b>${ok ? 'Correct.' : 'Not quite.'}</b> ${Q.e}</p><button class="btn solid" id="qNext">${i === activeQuestions.length - 1 ? 'See score' : 'Next question'}</button>`;
         $('#qNext').onclick = () => { i++; render(); };
       });
     };
