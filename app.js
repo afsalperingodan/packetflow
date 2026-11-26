@@ -316,6 +316,7 @@
     await runStep(i, tok); if (tok === state.token) applyStep(state.step);
   }
   async function play() {
+    if ($('#ws').classList.contains('split')) { const r = $('#ws').getBoundingClientRect(); if (r.top < 0 || r.top > 120) $('#ws').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     if (state.step >= state.P.steps.length - 1) { state.step = -1; applyStep(-1); }
     state.playing = true; const tok = ++state.token; applyStep(state.step);
     while (state.playing && tok === state.token && state.step < state.P.steps.length - 1) {
@@ -347,6 +348,11 @@
   function init() {
     setTheme(store.get('nf-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
     $('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+    const LINKEDIN_URL = ''; // <- paste your LinkedIn profile URL here
+    if (LINKEDIN_URL) { const li = $('#liLink'); li.href = LINKEDIN_URL; li.hidden = false; }
+    const setSplit = on => { $('#ws').classList.toggle('split', on); $('#splitBtn').classList.toggle('on', on); $('#splitBtn').textContent = on ? 'Stacked view' : 'Split view'; store.set('pf-split', on ? '1' : '0'); };
+    setSplit(store.get('pf-split') !== '0');
+    $('#splitBtn').onclick = () => { setSplit(!$('#ws').classList.contains('split')); $('#ws').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
     $('#menuBtn').onclick = () => $('#side').classList.toggle('open');
     $('#playBtn').onclick = togglePlay;
     $('#stepBtn').onclick = () => goTo(state.step + 1);
