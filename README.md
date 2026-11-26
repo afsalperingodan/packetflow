@@ -1,83 +1,122 @@
 # PacketFlow
 
-**Watch the internet talk.** An animated, step-by-step learning site for networking and wireless — no build step, no dependencies, just static HTML/CSS/JS.
+**Watch the internet talk.**
 
-**Live:** https://afsalperingodan.github.io/packetflow/
+PacketFlow is a free, interactive networking learning platform that turns network concepts into visual, step-by-step experiences. Follow packets as they move through protocols, explore how data is encapsulated across the OSI model, and see how wireless clients connect, authenticate, and roam.
 
-## What's inside
+**Try it live:** https://afsalperingodan.github.io/packetflow/
 
-| Page | What it is |
+---
+
+## Explore PacketFlow
+
+| Learning area | What you can explore |
 |---|---|
-| `index.html` — **Protocol explorer** | 62 protocols with animated packet flow, sequence diagrams, a live packet table and a header inspector. Split view puts the animation beside the packet list. |
-| `layers.html` — **Layers & Headers** | The 7 OSI layers, an encapsulation animation (HTTP, HTTPS, DNS, Wi-Fi, ping), a bit-level header explorer (Ethernet, 802.1Q, 802.11, ARP, IPv4, IPv6, ICMP, TCP, UDP, DNS, CAPWAP) and a quiz with leaderboard. |
-| `wireless.html` — **Wireless Lab** | Channels and signal simulator, Wi-Fi generations, client join flow, AP join to a Catalyst 9800 WLC, roaming (OKC, 802.11r, inter-controller), WPA2/WPA3 security, 802.11 frame headers, air-to-wire encapsulation, CSMA/CA, best practices, CLI cheat sheet and a quiz with leaderboard. |
+| **[Protocol Explorer](https://afsalperingodan.github.io/packetflow/)** | Explore 62 networking protocols across switching, wireless, transport, web, security, applications, routing, and tools. Watch animated packet flows, follow sequence diagrams, inspect packet details, and explore protocol headers. |
+| **[Layers & Headers](https://afsalperingodan.github.io/packetflow/layers.html)** | Learn the seven OSI layers, follow encapsulation and decapsulation, and inspect the fields inside Ethernet, 802.1Q, 802.11, ARP, IPv4, IPv6, ICMP, TCP, UDP, DNS, and CAPWAP headers. Includes an interactive quiz. |
+| **[Wireless Lab](https://afsalperingodan.github.io/packetflow/wireless.html)** | Explore Wi-Fi channels and generations, client association, AP join to a Catalyst 9800 WLC, roaming, WPA2/WPA3, 802.11 frame headers, air-to-wired encapsulation, and CSMA/CA. Includes practical guidance, a CLI cheat sheet, and an interactive quiz. |
 
-Protocol groups: local network & switching · wireless · transport · web · security & access · apps & voice · routing & tools.
+### A suggested learning path
 
-## Files
+1. **Start with protocols:** Pick a familiar protocol and follow the packet through its flow.
+2. **Understand the layers:** Use the OSI page to connect each protocol to its layer and see how headers are added and removed.
+3. **Explore wireless:** Follow a client joining a WLAN, understand authentication, and see what happens during roaming.
+4. **Test your knowledge:** Take the quizzes and compare your results on the leaderboard.
 
-```
-index.html  layers.html  wireless.html   pages
-style.css  layers.css  wireless.css      styles
-app.js                                   protocol explorer engine
-data.js data2.js data3.js                protocol definitions (62)
-layers.js                                OSI, encapsulation, header explorer, quiz
-wireless.js wireless2.js                 Wireless Lab
-board.js                                 quiz leaderboard
-site.js                                  site settings (LinkedIn link, leaderboard URL)
-```
+## Who is it for?
+
+- Students preparing for networking fundamentals and certifications such as CCNA.
+- Network engineers who want a visual refresher on protocols, packet headers, and troubleshooting concepts.
+- Wireless engineers learning Wi-Fi operation, roaming, security, and controller-based architectures.
+- Trainers and educators looking for interactive material to support networking lessons.
+- Anyone curious about what happens behind the scenes when devices communicate.
+
+## Built with
+
+- **HTML** for the learning pages and structure.
+- **CSS** for responsive layouts, animations, and visual presentation.
+- **Vanilla JavaScript** for packet simulations, interactive explorers, quizzes, and scoreboards.
+- **Firebase Realtime Database** for the shared quiz leaderboard.
+- **GitHub Pages** for static website hosting.
+
+There is no frontend build step and no package installation required to run the site locally.
 
 ## Run locally
 
+Clone or download the repository, then start a local web server from the project directory:
+
 ```bash
 python3 -m http.server 8000
-# open http://localhost:8000
 ```
 
-## Deploy on GitHub Pages
+Open http://localhost:8000 in your browser.
 
-1. Push these files to `main`.
-2. Settings → Pages → *Deploy from a branch* → `main` / `(root)`.
-3. Your site is at `https://<user>.github.io/<repo>/`.
+## Project structure
 
-When you change CSS/JS, bump the `?v=` query on the `<link>`/`<script>` tags in the HTML files so browsers don't serve cached copies.
+```
+index.html              Protocol Explorer
+layers.html             Layers & Headers
+wireless.html           Wireless Lab
 
-## Settings (`site.js`)
+style.css               Shared / protocol explorer styles
+layers.css              Layers page styles
+wireless.css            Wireless page styles
+
+app.js                  Protocol explorer engine
+data.js
+data2.js
+data3.js                Protocol definitions
+layers.js               OSI, encapsulation, headers, and quiz
+wireless.js
+wireless2.js            Wireless simulations and learning interactions
+board.js                Quiz leaderboard integration
+site.js                 Site settings
+```
+
+## Quiz leaderboard
+
+The Layers & Headers and Wireless Lab quizzes include a shared leaderboard. Scores are ranked by **score first**, then **completion time**.
+
+The site uses Firebase Realtime Database for shared scores. If the database is unavailable, the quiz can fall back to saving scores locally in the visitor's browser. The leaderboard is intended for learning and friendly competition.
+
+**Please note:** Quiz results are submitted from the visitor's browser, so they are not tamper-proof. Do not use leaderboard positions as formal certification or assessment results. Names submitted to the leaderboard are visible to other visitors.
+
+### Leaderboard configuration
+
+The Firebase database endpoint is configured in `site.js`:
 
 ```js
-window.PF_LINKEDIN  = 'https://www.linkedin.com/in/your-name/';   // header icon
-window.PF_BOARD_URL = '';                                          // worldwide leaderboard (below)
+window.PF_BOARD_URL = 'https://packetflow-board-default-rtdb.firebaseio.com';
 ```
 
-## Global leaderboard (optional, free)
+The database rules should restrict writes to new score entries and validate the submitted fields. Review the Firebase Realtime Database Rules in the Firebase console before changing them. Never put private service-account credentials or secrets in this public repository.
 
-GitHub Pages is static, so a worldwide ranking needs a small database. Without one, scores are saved **on the visitor's device only** and the board says so. To make it global with a free Firebase Realtime Database:
+## Deploy
 
-1. Go to https://console.firebase.google.com → **Add project** (Analytics not needed).
-2. **Build → Realtime Database → Create database** (test mode is fine to start).
-3. Open the **Rules** tab and paste:
+This project is hosted using GitHub Pages.
 
-```json
-{
-  "rules": {
-    "scores": {
-      "$quiz": {
-        ".read": true,
-        "$id": {
-          ".write": "!data.exists()",
-          ".validate": "newData.hasChildren(['name','score','total','ms','t']) && newData.child('name').isString() && newData.child('name').val().length <= 20 && newData.child('score').isNumber() && newData.child('total').isNumber() && newData.child('score').val() >= 0 && newData.child('score').val() <= newData.child('total').val() && newData.child('total').val() <= 20"
-        }
-      }
-    }
-  }
-}
-```
+1. Push the site files to the repository's `main` branch.
+2. In GitHub, open **Settings → Pages**.
+3. Select **Deploy from a branch**, choose `main` and the repository root.
+4. Wait for the deployment, then open the live site URL.
 
-4. Copy the database URL shown at the top (like `https://your-project-default-rtdb.firebaseio.com`) into `window.PF_BOARD_URL` in `site.js`, commit, done.
+When changing CSS or JavaScript, update the corresponding `?v=` cache-busting value in the HTML references if needed, so visitors' browsers load the latest file.
 
-Visitors can then add a name after each quiz and everyone sees one ranking (score, then speed). Because the quiz runs in the browser, scores can't be made tamper-proof — treat the board as for fun, not for certification.
+## Contributing
 
-## Notes
+Suggestions, corrections, and improvements are welcome.
 
-- Addresses in examples come from documentation ranges (RFC 5737 / 1918). Flows are simplified for learning.
-- Wireless / Catalyst 9800 notes are general guidance; confirm syntax and design against your IOS-XE release and Cisco's current guides.
+- Report an issue if you find an incorrect explanation, broken interaction, or rendering problem.
+- When suggesting a networking correction, include the protocol or feature, the relevant detail, and a reliable reference where possible.
+- Keep examples understandable and clearly distinguish simplified learning simulations from actual device behavior.
+- Test changes across the three learning pages before submitting them.
+
+## Accuracy and learning disclaimer
+
+PacketFlow is an educational resource. Packet flows and protocol behavior are simplified to make concepts easier to understand; they are not packet captures or a substitute for vendor documentation, standards, or hands-on lab validation.
+
+Some example IP addresses use documentation or private address ranges. Wireless and Catalyst 9800 guidance is general learning material: verify commands, behavior, and design recommendations against the relevant software release and current vendor documentation before using them in production.
+
+---
+
+**Keep exploring. Follow the packet. Understand the network.**
