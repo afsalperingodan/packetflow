@@ -392,6 +392,24 @@
   ];
   $('#cliTbl').innerHTML = `<thead><tr><th>Command (IOS‑XE, Catalyst 9800)</th><th>What it shows</th><th>Use it when…</th></tr></thead><tbody>${CLI.map(r => `<tr><td><code>${r[0]}</code></td><td class="info">${r[1]}</td><td class="info">${r[2]}</td></tr>`).join('')}</tbody><caption>Command names vary slightly between IOS‑XE releases — check <code>?</code> on your device.</caption>`;
 
+
+  function pickQuizQuestions(bank, quizId, count = 15) {
+    const key = 'pf-quiz-seen-' + quizId;
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem(key) || '[]'); } catch {}
+    const fresh = bank.map((q, id) => ({ q, id })).filter(x => !seen.includes(x.id));
+    // Start a new cycle only when fewer than a full quiz remain.
+    const pool = fresh.length >= count ? fresh : bank.map((q, id) => ({ q, id }));
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const selected = pool.slice(0, Math.min(count, pool.length));
+    const nextSeen = [...new Set([...seen, ...selected.map(x => x.id)])];
+    try { localStorage.setItem(key, JSON.stringify(nextSeen.length >= bank.length ? [] : nextSeen)); } catch {}
+    return selected.map(x => x.q);
+  }
+
   /* ═════════ K · quiz ═════════ */
   const Q = [
     ['Which 2.4 GHz channels do not overlap (20 MHz)?', ['1, 5, 9', '1, 6, 11', '2, 7, 12', '3, 8, 13'], 1, 'Channels are 5 MHz apart but each signal is ~22 MHz wide, so only 1, 6 and 11 are clear of each other.'],
@@ -406,12 +424,14 @@
     ['Why does Wi‑Fi use RTS/CTS?', ['To encrypt traffic', 'To protect against hidden nodes', 'To find APs', 'To speed up roaming'], 1, 'The AP’s CTS is heard by stations that cannot hear the sender, so they set their NAV.'],
   ];
   (() => {
+    const QUESTIONS_PER_ATTEMPT = 15;
+    let activeQuestions = pickQuizQuestions(Q, 'wireless', QUESTIONS_PER_ATTEMPT);
     const box = $('#quizBox'); let i = 0, score = 0, T0 = performance.now();
     const render = () => {
-      if (i >= Q.length) { box.innerHTML = `<div class="qdone"><div class="big">${score}/${Q.length}</div><p>${score >= 9 ? 'Wireless expert — CWNA territory!' : score >= 7 ? 'Strong. Revisit the sections you missed.' : 'Good start — replay the flows above and try again.'}</p><div id="qForm"></div><button class="btn solid" id="qAgain">Try again</button></div>`; PFBoard.form($('#qForm'), 'wireless', score, Q.length, Math.round(performance.now() - T0)); $('#qAgain').onclick = () => { i = 0; score = 0; T0 = performance.now(); render(); }; return; }
-      const q = Q[i];
-      box.innerHTML = `<div class="qtop"><span>Question ${i + 1} / ${Q.length}</span><span>Score ${score}</span></div><div class="qbar"><b style="width:${i / Q.length * 100}%"></b></div><h3 class="qq">${q[0]}</h3><div class="qopts">${q[1].map((t, k) => `<button data-k="${k}">${t}</button>`).join('')}</div><div class="qfb" id="qfb"></div>`;
-      $$('.qopts button', box).forEach(b => b.onclick = () => { const k = +b.dataset.k, ok = k === q[2]; if (ok) score++; $$('.qopts button', box).forEach(x => { x.disabled = true; if (+x.dataset.k === q[2]) x.classList.add('right'); }); if (!ok) b.classList.add('wrong'); $('#qfb').innerHTML = `<p><b>${ok ? 'Correct.' : 'Not quite.'}</b> ${q[3]}</p><button class="btn solid" id="qNext">${i === Q.length - 1 ? 'See score' : 'Next question'}</button>`; $('#qNext').onclick = () => { i++; render(); }; });
+      if (i >= activeQuestions.length) { box.innerHTML = `<div class="qdone"><div class="big">${score}/${activeQuestions.length}</div><p>${score >= 9 ? 'Wireless expert — CWNA territory!' : score >= 7 ? 'Strong. Revisit the sections you missed.' : 'Good start — replay the flows above and try again.'}</p><div id="qForm"></div><button class="btn solid" id="qAgain">Try again</button></div>`; PFBoard.form($('#qForm'), 'wireless', score, activeQuestions.length, Math.round(performance.now() - T0)); $('#qAgain').onclick = () => { activeQuestions = pickQuizQuestions(Q, 'wireless', QUESTIONS_PER_ATTEMPT); i = 0; score = 0; T0 = performance.now(); render(); }; return; }
+      const q = activeQuestions[i];
+      box.innerHTML = `<div class="qtop"><span>Question ${i + 1} / ${activeQuestions.length}</span><span>Score ${score}</span></div><div class="qbar"><b style="width:${i / activeQuestions.length * 100}%"></b></div><h3 class="qq">${q[0]}</h3><div class="qopts">${q[1].map((t, k) => `<button data-k="${k}">${t}</button>`).join('')}</div><div class="qfb" id="qfb"></div>`;
+      $$('.qopts button', box).forEach(b => b.onclick = () => { const k = +b.dataset.k, ok = k === q[2]; if (ok) score++; $$('.qopts button', box).forEach(x => { x.disabled = true; if (+x.dataset.k === q[2]) x.classList.add('right'); }); if (!ok) b.classList.add('wrong'); $('#qfb').innerHTML = `<p><b>${ok ? 'Correct.' : 'Not quite.'}</b> ${q[3]}</p><button class="btn solid" id="qNext">${i === activeQuestions.length - 1 ? 'See score' : 'Next question'}</button>`; $('#qNext').onclick = () => { i++; render(); }; });
     };
     render();
     PFBoard.mount('#board', 'wireless', 'Leaderboard · Wireless quiz');
