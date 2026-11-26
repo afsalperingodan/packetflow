@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireless Lab — Wi‑Fi explained · PacketFlow</title>
+<meta name="description" content="Animated Wi‑Fi learning lab: channels, signal, client join, Catalyst 9800 AP join, roaming (11k/v/r), WPA2/WPA3 security, 802.11 frame headers and best practices.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23000'/%3E%3Ccircle cx='9' cy='16' r='3' fill='%23fff'/%3E%3Ccircle cx='23' cy='16' r='3' fill='%23ff3b30'/%3E%3Cpath d='M12 16h8' stroke='%23fff' stroke-width='1.5' stroke-dasharray='1.5 2.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@500;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=20261128a">
+<link rel="stylesheet" href="layers.css?v=20261128a">
+<link rel="stylesheet" href="wireless.css?v=20261128a">
+</head>
+<body class="lpage wpage">
+<div class="bg" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="index.html" aria-label="PacketFlow home">
+    <span class="logo"><i></i><b></b><i class="r"></i></span>
+    <span class="wm">Packet<em>Flow</em></span>
+  </a>
+  <div class="spacer"></div>
+  <a class="navlink" href="index.html#explore">Protocols</a>
+  <a class="navlink" href="layers.html">Layers &amp; Headers</a>
+  <a class="navlink hot" href="wireless.html">Wireless</a>
+  <button class="icon-btn" id="themeBtn" aria-label="Switch light/dark theme" title="Switch theme">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg></button>
+  <a class="icon-btn" id="liLink" href="#" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn" hidden>
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+  </a>
+  <a class="icon-btn" href="https://github.com/afsalperingodan/packetflow" target="_blank" rel="noopener" aria-label="Source on GitHub" title="Source on GitHub">
+    <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+  </a>
+</header>
+
+<nav class="wnav" id="wnav" aria-label="Wireless sections">
+  <a href="#air">Airwaves</a><a href="#standards">Standards</a><a href="#join">Client join</a><a href="#apjoin">AP join (9800)</a><a href="#roam">Roaming</a><a href="#sec">Security</a><a href="#frames">Frames</a><a href="#wire">Air → wire</a><a href="#csma">CSMA/CA</a><a href="#best">Best practice</a><a href="#wquiz">Quiz</a>
+</nav>
+
+<main class="lwrap">
+  <section class="lhero">
+    <p class="eyebrow"><i></i> Wireless Lab</p>
+    <h1 class="big2">How Wi‑Fi <span class="grad">really works.</span></h1>
+    <p class="lede">From radio waves and channels to a client joining, an AP joining a Catalyst 9800 controller, roaming and security — every step animated, every frame explained.</p>
+    <div class="wdemo" aria-hidden="true"><i class="wr r1"></i><i class="wr r2"></i><i class="wr r3"></i><span class="wap"></span><span class="wcl"></span></div>
+  </section>
+
+  <!-- A · airwaves -->
+  <section class="lsec" id="air">
+    <div class="shead"><span class="sn">01</span><div><h2>The airwaves</h2><p>Wi‑Fi lives in three bands. Pick one, then a channel width, and see how much room there really is.</p></div></div>
+    <div class="card bandcard">
+      <div class="htabs" id="bandTabs"><button class="on" data-b="24">2.4 GHz</button><button data-b="5">5 GHz</button><button data-b="6">6 GHz (Wi‑Fi 6E/7)</button></div>
+      <div class="wopts"><span class="wl">Channel width</span><div class="speed" id="widthSeg"></div><label class="chk" id="usWrap"><input type="checkbox" id="us" checked> US channels only (1–11)</label></div>
+      <div id="chartArea"></div>
+      <div class="bstats" id="bstats"></div>
+      <p class="chnote" id="chnote"></p>
+    </div>
+
+    <div class="shead sub"><span class="sn small">▸</span><div><h3 class="h3b">Signal strength &amp; distance</h3><p>Move the client away from the AP and watch RSSI, SNR and the data rate it can sustain.</p></div></div>
+    <div class="card simcard">
+      <div class="simleft">
+        <svg id="simSvg" viewBox="0 0 640 300" role="img" aria-label="AP coverage simulator"></svg>
+      </div>
+      <div class="simright">
+        <div class="ctl2"><label>Distance <b id="dOut">15 m</b></label><input type="range" id="dist" min="1" max="60" value="15"></div>
+        <div class="ctl2"><label>Walls in between <b id="wOut">1</b></label><input type="range" id="walls" min="0" max="5" value="1"></div>
+        <div class="ctl2"><label>Band</label><div class="speed" id="simBand"><button data-b="24">2.4</button><button data-b="5" class="on">5</button><button data-b="6">6</button></div></div>
+        <div class="gauges" id="gauges"></div>
+        <p class="simnote">Model: AP transmits 17 dBm, indoor path‑loss exponent 3, 5 dB per wall, noise floor −95 dBm. Real life varies — always do a site survey.</p>
+      </div>
+    </div>
+    <div class="card rssi-table" id="rssiTable"></div>
+  </section>
+
+  <!-- B · standards -->
+  <section class="lsec" id="standards">
+    <div class="shead"><span class="sn">02</span><div><h2>Wi‑Fi generations</h2><p>Each generation raised speed — and from Wi‑Fi 6 on, efficiency in crowded places.</p></div></div>
+    <div class="card stdcard"><div class="tscroll"><table id="stdTbl"></table></div></div>
+    <div class="amend" id="amend"></div>
+  </section>
+
+  <!-- C · client join -->
+  <section class="lsec" id="join">
+    <div class="shead"><span class="sn">03</span><div><h2>How a client joins Wi‑Fi</h2><p>Beacon → probe → authenticate → associate → secure → get an IP. Pick a security type and press Play.</p></div></div>
+    <div class="card flowcard">
+      <div class="htabs" id="joinTabs"></div>
+      <div class="flowhost" id="joinFlow"></div>
+    </div>
+  </section>
+
+  <!-- D · AP join -->
+  <section class="lsec" id="apjoin">
+    <div class="shead"><span class="sn">04</span><div><h2>How an AP joins a Catalyst 9800 WLC</h2><p>Boot, get an IP, find the controller, build a DTLS tunnel, join, download config and go live.</p></div></div>
+    <div class="card flowcard">
+      <div class="htabs" id="apTabs"></div>
+      <div class="flowhost" id="apFlow"></div>
+    </div>
+    <div class="shead sub"><span class="sn small">▸</span><div><h3 class="h3b">The 9800 tag model</h3><p>An AP gets its behaviour from three tags. Hover a box.</p></div></div>
+    <div class="card tagcard" id="tagCard"></div>
+    <div class="shead sub"><span class="sn small">▸</span><div><h3 class="h3b">“My AP won’t join” — checklist</h3><p>Work top to bottom; most problems are in the first four.</p></div></div>
+    <div class="card trbl" id="trbl"></div>
+  </section>
+
+  <!-- E · roaming -->
+  <section class="lsec" id="roam">
+    <div class="shead"><span class="sn">05</span><div><h2>What happens when a client roams</h2><p>The client decides when to roam. The network can only help — with 802.11k, v and r.</p></div></div>
+    <div class="card flowcard">
+      <div class="htabs" id="roamTabs"></div>
+      <div class="roamscore" id="roamScore"></div>
+      <div class="flowhost" id="roamFlow"></div>
+    </div>
+    <div class="card kvr" id="kvr"></div>
+  </section>
+
+  <!-- F · security -->
+  <section class="lsec" id="sec">
+    <div class="shead"><span class="sn">06</span><div><h2>Wireless security</h2><p>From open networks to WPA3‑Enterprise — and how the encryption keys are really born.</p></div></div>
+    <div class="card stdcard"><div class="tscroll"><table id="secTbl"></table></div></div>
+    <div class="shead sub"><span class="sn small">▸</span><div><h3 class="h3b">Key hierarchy</h3><p>Click a method to see where the master key (PMK) comes from.</p></div></div>
+    <div class="card keycard">
+      <div class="htabs" id="keyTabs"></div>
+      <div class="keyviz" id="keyViz"></div>
+    </div>
+    <div class="card attacks" id="attacks"></div>
+  </section>
+
+  <!-- G · frames -->
+  <section class="lsec" id="frames">
+    <div class="shead"><span class="sn">07</span><div><h2>802.11 frames &amp; headers</h2><p>Management, control and data frames — open each one bit by bit.</p></div></div>
+    <div class="card typecard" id="ftypes"></div>
+    <div class="card hdrcard">
+      <div class="htabs" id="htabs" role="tablist"></div>
+      <div class="hmeta" id="hmeta"></div>
+      <div class="hbody"><div class="hgrid-wrap"><div class="ruler" id="ruler"></div><div class="hgrid" id="hgrid"></div></div><aside class="hdetail" id="hdetail"></aside></div>
+    </div>
+    <div class="shead sub"><span class="sn small">▸</span><div><h3 class="h3b">The four addresses</h3><p>Toggle To DS / From DS to see what Address 1–4 mean.</p></div></div>
+    <div class="card addrcard" id="addrCard"></div>
+    <div class="card ies" id="ies"></div>
+  </section>
+
+  <!-- H · air to wire -->
+  <section class="lsec" id="wire">
+    <div class="shead"><span class="sn">08</span><div><h2>From air to wire</h2><p>Follow one packet: the client’s 802.11 frame, the AP, the CAPWAP tunnel, the controller and the wired network.</p></div></div>
+    <div class="card encap">
+      <div class="etop"><div class="scen" id="wscen"></div>
+        <div class="ctl"><button class="btn solid" id="wPlay">Play</button><button class="btn round" id="wPrev" aria-label="Previous">‹</button><button class="btn round" id="wNext" aria-label="Next">›</button><button class="btn ghost" id="wReset">Reset</button></div></div>
+      <div class="wstack" id="wstack"></div>
+      <div class="caption" id="wcap"></div>
+      <div class="legendbar" id="wlegend"></div>
+    </div>
+  </section>
+
+  <!-- I · CSMA/CA -->
+  <section class="lsec" id="csma">
+    <div class="shead"><span class="sn">09</span><div><h2>Sharing the air: CSMA/CA</h2><p>Wi‑Fi is half‑duplex — everyone takes turns. Here’s the polite queue.</p></div></div>
+    <div class="card flowcard"><div class="airstrip" id="airStrip"></div><div class="flowhost" id="csmaFlow"></div></div>
+  </section>
+
+  <!-- J · best practice -->
+  <section class="lsec" id="best">
+    <div class="shead"><span class="sn">10</span><div><h2>Best practices &amp; Catalyst 9800 cheat sheet</h2><p>Practical guidance that works in most enterprise networks. Always validate against your design and Cisco’s current guides.</p></div></div>
+    <div class="bpgrid" id="bpGrid"></div>
+    <div class="card stdcard"><div class="tscroll"><table id="cliTbl"></table></div></div>
+  </section>
+
+  <!-- K · quiz -->
+  <section class="lsec" id="wquiz">
+    <div class="shead"><span class="sn">11</span><div><h2>Wireless quiz</h2><p>Ten questions from the radio up.</p></div></div>
+    <div class="card quiz" id="quizBox"></div>
+  </section>
+
+  <footer class="foot">Educational simplifications — always follow your vendor’s current design &amp; configuration guides. <a href="index.html" style="text-decoration:underline">← Protocol explorer</a> · <a href="layers.html" style="text-decoration:underline">Layers &amp; headers</a></footer>
+</main>
+
+<script src="site.js?v=20261128a"></script>
+<script src="wireless.js?v=20261128a"></script>
+<script src="wireless2.js?v=20261128a"></script>
+</body>
+</html>
